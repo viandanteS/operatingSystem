@@ -1,5 +1,7 @@
 package tracce.aziendaagricola;
 
+
+
 public abstract class AbstractAziendaAgricola {
 
 
@@ -8,25 +10,26 @@ public abstract class AbstractAziendaAgricola {
 
 
 
+
     protected abstract void paga(int N) throws InterruptedException;
     protected abstract void restock()  throws InterruptedException;
-    public abstract void ritira(int n)  throws InterruptedException;
+    protected abstract void ritira()  throws InterruptedException;
 
 
     public void test(int N) throws InterruptedException {
 
+        new Magazziniere(this).start();
         Cliente[] clienti=new  Cliente[N];
         for(int i=0;i<N;i++){
             clienti[i]=new Cliente(this,""+i);
             clienti[i].start();
         }
-        new Magazziniere(this).start();
 
 
         for(int i=0;i<N;i++){
             clienti[i].join();
         }
-
+        System.out.println("Sacchetti richiesti "+Cliente.getContador());
         System.out.println("L'incasso è "+incasso);
 
 
