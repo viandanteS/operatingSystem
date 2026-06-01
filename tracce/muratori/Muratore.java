@@ -3,14 +3,17 @@ package tracce.muratori;
 import java.sql.SQLOutput;
 import java.util.concurrent.TimeUnit;
 
-public class Muratore implements Runnable{
+public class Muratore extends Thread{
 
     private static final int[] PREP_TIMES = { 5,7 };
     private static final int OPERATION_TIMES = 10 ;
     private static final int REST_TIME = 5 ;
+
     private int type;
     boolean disponibilitaLavori=true;
+
     private AbstractCasa casa;
+
     //5s per mattoni, 7s per cemento
     //type==0 --> muratore mattoni
     //type==1 --> muratore cemento
@@ -31,15 +34,13 @@ public class Muratore implements Runnable{
             try{
                 TimeUnit.MILLISECONDS.sleep(PREP_TIMES[type]); //prepara materiale
                 disponibilitaLavori= casa.inizia(type); //inizia a lavorare
+                if(!disponibilitaLavori){break;}
                 TimeUnit.MILLISECONDS.sleep(OPERATION_TIMES);//lavora 10s
-                System.out.println("Il lavoratore "+Thread.currentThread().getName()+" ha finito di lavora ed inizia a riposare");
+                casa.termina(type);
                 TimeUnit.MILLISECONDS.sleep(REST_TIME);
+
             }catch(InterruptedException e){}
         }
-        try {
-            casa.termina(type);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        System.out.println("muratore "+ Thread.currentThread().getName()+" se ne và.");
     }
 }

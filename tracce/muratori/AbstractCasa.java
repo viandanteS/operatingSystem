@@ -1,7 +1,7 @@
 package tracce.muratori;
 
 public abstract class AbstractCasa {
-
+    protected static final int LATI=4;
     final int N,nM,nC;
 
     public AbstractCasa(int N, int nM, int nC){
@@ -19,10 +19,11 @@ public abstract class AbstractCasa {
     public void test(){
 
         for(int i=0;i<nM;i++){
-            new Thread(new Muratore(0,this)).start();
+            new Muratore(0,this).start();
+
         }
         for(int i=0;i<nC;i++){
-            new Thread(new Muratore(1,this)).start();
+            new Muratore(1,this).start();
         }
 
     }
