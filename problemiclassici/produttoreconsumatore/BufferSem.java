@@ -3,6 +3,7 @@ package problemiclassici.produttoreconsumatore;
 import java.util.concurrent.Semaphore;
 
 public class BufferSem extends AbstractBufferCondiviso{
+
     private Semaphore ciSonoElementi=new Semaphore(0);
     private Semaphore ciSonoPostiVuoti;
     private Semaphore mutex=new Semaphore(1);
@@ -17,8 +18,8 @@ public class BufferSem extends AbstractBufferCondiviso{
         try{
             ciSonoPostiVuoti.acquire();
             mutex.acquire();
-            buf[in]=i;
-            in=(in+1)%this.buf.length;
+            buf[lastProduced]=i;
+            lastProduced=(lastProduced+1)%this.buf.length;
             mutex.release();
             ciSonoElementi.release();
         } catch (InterruptedException e) {
@@ -32,8 +33,8 @@ public class BufferSem extends AbstractBufferCondiviso{
         try{
             ciSonoElementi.acquire();
             mutex.acquire();
-            prelevato=buf[out];
-            out=(out+1)%this.buf.length;
+            prelevato=buf[lastConsumed];
+            lastConsumed=(lastConsumed+1)%this.buf.length;
             mutex.release();
             ciSonoPostiVuoti.release();
             return prelevato;
@@ -46,6 +47,6 @@ public class BufferSem extends AbstractBufferCondiviso{
 
     public static void main(String[] args){
         BufferSem buffer=new BufferSem(10);
-        buffer.test();
+        buffer.test(3,12);
     }
 }

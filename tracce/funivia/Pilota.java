@@ -6,21 +6,22 @@ public class Pilota extends Thread{
 
     private AbstractFunivia funivia;
 
-    public Pilota(){
+    public Pilota(AbstractFunivia funivia)
+    {
+        this.funivia=funivia;
         this.setDaemon(true);
     }
 
     public void run(){
         while(true){
-            funivia.pilotaStart();
-            System.out.println("La funivia è partita");
             try {
-                TimeUnit.SECONDS.sleep(10);
+                funivia.pilotaStart();
+
+
+                funivia.pilotaEnd();
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
-            funivia.pilotaEnd();
-            System.out.println("La funivia è ritornata");
         }
     }
 

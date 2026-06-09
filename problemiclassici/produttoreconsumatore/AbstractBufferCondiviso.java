@@ -1,13 +1,18 @@
 package problemiclassici.produttoreconsumatore;
 
+import java.util.Arrays;
+
 public abstract class AbstractBufferCondiviso {
+
     protected int[] buf;
-    protected int in=0;
-    protected int out=0;
+    protected int lastProduced = 0;
+    protected int lastConsumed=0;
 
 
     public AbstractBufferCondiviso(int N){
         buf=new int[N];
+        Arrays.fill(buf,-1);
+
     }
 
     public abstract void put(int i) throws InterruptedException;
@@ -15,12 +20,12 @@ public abstract class AbstractBufferCondiviso {
 
 
 
-    protected void test(){
+    protected void test(int consumers, int producers){
 
-        for(int i=0;i<2;i++){
+        for(int i=0;i<consumers;i++){
             new Consumer(this).start();
         }
-        for(int i=0;i<10;i++) {
+        for(int i=0;i<producers;i++) {
             new Producer(this).start();
         }
     }

@@ -1,118 +1,77 @@
 package tracce.muratori;
 
-
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
-public class CasaSem extends AbstractCasa{
+public class CasaSem extends AbstractCasa {
 
 
+    private final Semaphore[][] pareti = new  Semaphore[2][4];
+    private final Semaphore mutex = new Semaphore(1,true);
+    private final int[] lavori=new int[2];
 
-    //private Semaphore[] mutexPossoLavorare = new Semaphore[LATI]; //se la iesima parete è in una delle due code allora nell'iesimo semaforo c'è un permesso
-
-//    private Semaphore pareti = new Semaphore(4,true); // quando occupo una parete con job type qualsiasi faccio acquire, quando finisco release
-
-    private Semaphore semMutex = new Semaphore(1);
-
-    private Semaphore jobMattoni = new Semaphore(0);//protegge l'estrazione dalla coda dei mattoni
-    private Semaphore jobCemento = new Semaphore(0);
-
-    Queue<Integer> paretiPerMattoni=new LinkedList<>();
-    private int[] mattoniPiazzati=new int[LATI];
-    Queue<Integer> paretiPerCemento=new LinkedList<>();
-
-    Map<Long,Integer> muratoreMuro = new HashMap<Long,Integer>();
-
-    public CasaSem(int i, int nM, int nC) {
-        super(i,nM,nC);
-        for(int x=0;x<LATI;x++){
-        //    mutexPossoLavorare[x] = new Semaphore(1,true);
-            paretiPerMattoni.offer(x);
-            jobMattoni.release();
+    public CasaSem(int strati) {
+        super(strati);
+        for(int i=0;i<pareti[0].length;i++){
+            pareti[0][i] = new Semaphore(1,true);
         }
-
+        for(int i=0;i<pareti[1].length;i++){
+            pareti[1][i] = new Semaphore(0,true);
+        }
+        for(int i=0;i<lavori.length;i++){
+            lavori[i] = strati*4;
+        }
     }
 
-    //se c'è una parete in coda allora me la piglio, e la aggiungo al registro delle lavorazioni
-    @Override
-    public boolean inizia(int type) throws InterruptedException {
+    private int roundRobinMattoni=4;
+    private int roundRobinCemento=4;
 
-        long thisMuratore = Thread.currentThread().getId();
-        boolean ret=true;
-        if(type==0){
-
-//            pareti.acquire();
-            jobMattoni.acquire();
-            semMutex.acquire();
-            if(paretiFinite()){
-                semMutex.release();
-                return !ret; }
-            int pareteDaLavorare =  paretiPerMattoni.poll();
-            mattoniPiazzati[pareteDaLavorare]++;
-            //mutexPossoLavorare[pareteDaLavorare].acquire();
-            muratoreMuro.put(thisMuratore,pareteDaLavorare);
-            System.out.println(Thread.currentThread().getName()+" muratore lavora su parete "+pareteDaLavorare);
-            semMutex.release();
-
-        }else{
-
-//            pareti.acquire();
-            jobCemento.acquire();
-            semMutex.acquire();
-            if(paretiFinite()){
-                semMutex.release();
-                return !ret; }
-            int pareteDaLavorare =  paretiPerCemento.poll();
-            muratoreMuro.put(thisMuratore,pareteDaLavorare);
-            System.out.println(Thread.currentThread().getName()+" muratore lavora su parete "+pareteDaLavorare);
-            semMutex.release();
-        }
-
-
-        return ret;
-    }
-
-    private boolean paretiFinite(){
-        for (int i=0;i<LATI;i++){
-            if(mattoniPiazzati[i]!=N){return false;}
-        }
-        System.out.println("pareti finite");
+    private boolean lavoriTerminati(int t){
+        if(lavori[t]>0) return false;
         return true;
+
     }
 
     @Override
-    public void termina(int type) throws InterruptedException {
+    public boolean inizia(int t) throws InterruptedException {
 
-        long thisMuratore = Thread.currentThread().getId();
 
-        semMutex.acquire();
-        int pareteDaLiberare= muratoreMuro.remove(thisMuratore);
+        mutex.acquire();
+        if(lavoriTerminati(t)) {mutex.release(); return false;}
+        lavori[t]--;
+        int pareteAssegnata = t==0 ? (roundRobinMattoni++%pareti[0].length) : (roundRobinCemento++%pareti[1].length);
+        //System.out.println(Thread.currentThread().getName()+" type: "+ t +" Parete Assegnata: "+pareteAssegnata);
+        mutex.release();
 
-        if(type==0){
-            paretiPerCemento.offer(pareteDaLiberare);
-            //mutexPossoLavorare[pareteDaLiberare].release();
-            jobCemento.release();
-    //        pareti.release();
+
+
+        pareti[t][pareteAssegnata].acquire(); //se lo supera vuol dire che la parete è libera ed è pronta per essere lavorata da quel tipo di muratore
+        System.out.println(Thread.currentThread().getName()+" type: "+ t +" lavora su  "+pareteAssegnata);
+        TimeUnit.MILLISECONDS.sleep(200);
+        sbloccaSuccessivo(t,pareteAssegnata);
+
+        return true;
+
+    }
+
+    private void sbloccaSuccessivo(int t,int x){
+        if(t==1){
+            pareti[t-1][x].release();
         }else{
-            paretiPerMattoni.offer(pareteDaLiberare);
-            jobMattoni.release();
-    //        pareti.release();
+            pareti[t+1][x].release();
         }
-        System.out.println(Thread.currentThread().getId()+" termina e riposa");
-        semMutex.release();
+    }
+
+    @Override
+    public void termina(int t) throws InterruptedException {
+        System.out.println("Terminato "+Thread.currentThread().getName());
 
     }
 
 
     public static void main(String[] args) throws InterruptedException {
-
-        CasaSem casa = new CasaSem(20,5,7);
-        casa.test();
+        CasaSem casa = new CasaSem(20);
+        casa.test(5,7);
 
     }
-
-
 }

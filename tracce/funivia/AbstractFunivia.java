@@ -2,22 +2,20 @@ package tracce.funivia;
 
 public abstract class AbstractFunivia {
 
-    protected static final int TURISTA_A_PIEDI = 0;
-    protected static final int TURISTA_IN_BICI = 1;
-    protected static final int POSTI_FUNIVIA = 6;
+    abstract void pilotaStart() throws InterruptedException;
+    abstract void pilotaEnd() throws InterruptedException;
+    abstract void turistaSali(int t) throws InterruptedException;
+    abstract void turistaScendi(int t) throws InterruptedException;
 
-    abstract void pilotaStart();
-    abstract void pilotaEnd();
-    abstract void turistaSali(int t);
-    abstract void turistaScendi(int t);
+    void test(){
 
-    void test(int numTuristi){
-
-        for (int i = 0; i<numTuristi; i++){
-
+        for (int i = 0; i<18; i++){
+            new Turista(0,this).start();
         }
-
-
+        for (int i = 0; i<9; i++){
+            new Turista(1,this).start();
+        }
+        new Pilota(this).start();
     }
 
 

@@ -1,46 +1,61 @@
 package tracce.muratori;
 
-import java.sql.SQLOutput;
+
 import java.util.concurrent.TimeUnit;
 
 public class Muratore extends Thread{
 
-    private static final int[] PREP_TIMES = { 5,7 };
-    private static final int OPERATION_TIMES = 10 ;
-    private static final int REST_TIME = 5 ;
-
-    private int type;
-    boolean disponibilitaLavori=true;
-
-    private AbstractCasa casa;
-
-    //5s per mattoni, 7s per cemento
-    //type==0 --> muratore mattoni
-    //type==1 --> muratore cemento
+    private final int type; //0 mattoni 1 cemento
+    private final AbstractCasa casa;
 
 
-
-    public Muratore(int type,AbstractCasa casa){
-        this.type=type;
-        this.casa=casa;
+    public Muratore(AbstractCasa casa,int type){
+        this.casa = casa;
+        this.type = type;
     }
-
-
 
     @Override
-    public void run() {
+    public void run(){
+        boolean notTerminato=true;
+        while(notTerminato){
+            try {
+                prepara();
 
-        while(disponibilitaLavori){
-            try{
-                TimeUnit.MILLISECONDS.sleep(PREP_TIMES[type]); //prepara materiale
-                disponibilitaLavori= casa.inizia(type); //inizia a lavorare
-                if(!disponibilitaLavori){break;}
-                TimeUnit.MILLISECONDS.sleep(OPERATION_TIMES);//lavora 10s
-                casa.termina(type);
-                TimeUnit.MILLISECONDS.sleep(REST_TIME);
+                notTerminato = casa.inizia(type);
 
-            }catch(InterruptedException e){}
+                riposa();
+
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
-        System.out.println("muratore "+ Thread.currentThread().getName()+" se ne và.");
+        try {
+            casa.termina(type);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
+
+    private void prepara() {
+        try{
+            if (type == 0) {
+                TimeUnit.MILLISECONDS.sleep(500);
+            } else {
+                TimeUnit.MILLISECONDS.sleep(700);
+            }
+        }catch (InterruptedException e){
+            e.printStackTrace();
+        }
+    }
+
+    private void riposa() {
+        try{
+            TimeUnit.MILLISECONDS.sleep(550);
+        }catch (InterruptedException e){
+            e.printStackTrace();
+        }
+
+    }
+
+
 }

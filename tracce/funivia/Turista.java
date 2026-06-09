@@ -1,11 +1,28 @@
 package tracce.funivia;
 
 public class Turista extends Thread{
+    private final int type;
+    private final AbstractFunivia funivia;
 
-        private final int type;
+    public  Turista(int type, AbstractFunivia funivia){
+        this.type = type;
+        this.funivia = funivia;
+    }
 
-        public Turista(int type){
-            this.type = type;
+
+    @Override
+    public void run(){
+
+        try{
+
+            funivia.turistaSali(type);
+
+            funivia.turistaScendi(type);
+
+        }catch (InterruptedException e){
+            e.printStackTrace();
         }
 
+
+    }
 }
