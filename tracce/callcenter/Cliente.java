@@ -7,11 +7,15 @@ public class Cliente extends Thread {
 
     private final CallCenter cc;
     private final Random rand=new Random();
+    private final int myId;
 
-    public Cliente(CallCenter cc) {
+    public Cliente(CallCenter cc,int myId) {
         this.cc = cc;
+        this.myId=myId;
     }
-
+    public int getMyId() {
+        return myId;
+    }
 
     public void run() {
         int time= rand.nextInt(2,6);

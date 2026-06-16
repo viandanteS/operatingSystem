@@ -2,8 +2,8 @@ package tracce.callcenter;
 
 public abstract class CallCenter {
 
-    private final int NUM_OPE;
-    private final int NUM_CLIENTI;
+    protected final int NUM_OPE;
+    protected final int NUM_CLIENTI;
 
 
     public CallCenter(int num_ope, int num_clienti) {
@@ -20,10 +20,10 @@ public abstract class CallCenter {
     public void test(int numOp,int numCli){
 
         for(int i=0;i<numCli;i++){
-            new Cliente(this).start();
+            new Cliente(this,i).start();
         }
         for(int i=0;i<numOp;i++){
-            new Operatore(this).start();
+            new Operatore(this,i).start();
         }
 
     }

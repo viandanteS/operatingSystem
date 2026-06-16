@@ -11,26 +11,34 @@ public class Operatore extends Thread {
     private int clientiServiti;
     private final Random rand=new Random();
     private final CallCenter cc;
+    private final int idOp;
 
-    public Operatore(CallCenter cc){
+    public Operatore(CallCenter cc,int idOp){
         this.cc=cc;
+        this.idOp=idOp;
         this.clientiServiti=0;
         this.setDaemon(true);
 
     }
 
+    public int getIdOp(){
+        return idOp;
+    }
     public void run(){
-        int attesaSoluzione=0;
 
         try{
             while(true) {
-                attesaSoluzione = rand.nextInt();
+
                 cc.fornisciAssistenza();
+
                 cc.prossimoCliente();
+
                 if (clientiServiti == CLIENTI_PER_PAUSA) {
                     System.out.println(Thread.currentThread().getName()+": riposo.");
                     attendi(MINUTI_DI_RIPOSO);
+                    clientiServiti=0;
                 }
+                clientiServiti++;
             }
         }
         catch (InterruptedException e){
